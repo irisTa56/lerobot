@@ -121,20 +121,15 @@ class EditDatasetConfig:
 
 
 def get_output_path(repo_id: str, new_repo_id: str | None, root: Path | None) -> tuple[str, Path]:
-    if new_repo_id:
-        output_repo_id = new_repo_id
-        output_dir = root / new_repo_id if root else HF_LEROBOT_HOME / new_repo_id
-    else:
-        output_repo_id = repo_id
-        dataset_path = root / repo_id if root else HF_LEROBOT_HOME / repo_id
-        old_path = Path(str(dataset_path) + "_old")
+    output_repo_id = new_repo_id if new_repo_id else repo_id
+    output_dir = root if root else HF_LEROBOT_HOME / output_repo_id
 
-        if dataset_path.exists():
-            if old_path.exists():
-                shutil.rmtree(old_path)
-            shutil.move(str(dataset_path), str(old_path))
-
-        output_dir = dataset_path
+    if output_dir.exists():
+        logging.info(f"Backup existing dataset at {output_dir}")
+        old_path = output_dir.parent / f"{output_dir.name}_old"
+        if old_path.exists():
+            shutil.rmtree(old_path)
+        shutil.move(str(output_dir), str(old_path))
 
     return output_repo_id, output_dir
 
